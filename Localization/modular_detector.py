@@ -13,14 +13,14 @@ from camera_utils import get_parameters
 from calculate_pose import calculate_tag_offset
 from calculate_pose import calculate_transformation
 from poseclass import Position
-
-INCHES_TO_METERS = 0.0254                                                                                      # OFFSET FROM ROBOT-------------------------------
-cams = {                                                                                                       # METERS-----------------------       RAD---------
-                   # ID                                                                                        # X=+front    Y=+left     Z=+up       yaw    pitch
-    cv2.VideoCapture(-1): {"Parameters": get_parameters("front_camera.yaml"), "Matrix": calculate_transformation(0, 0, 0, 0, 0)},
+TAG_SIZE_INCHES = 6.25
+INCHES_TO_METERS = 0.0254                                                                                      # OFFSET FROM ROBOT--------------------------
+cams = {                                                                                                       # METERS-----------------------  RAD---------
+                   # ID                                                                                        # X=+front    Y=+left     Z=+up  yaw    pitch
+    cv2.VideoCapture(-1): {"Parameters": get_parameters("side_camera.yaml"), "Matrix": calculate_transformation((14.5 * INCHES_TO_METERS), 0, (5.25 * INCHES_TO_METERS), 0, math.radians(90-21))}
     #cv2.VideoCapture(-1): {"Parameters": get_parameters("back_camera.yaml"),  "Matrix": calculate_transformation(X OFFSET, Y OFFSET, Z OFFSET, YAW, PITCH)}
 }
-ACCEPTABLE_TAG_ERROR_LIMIT = 5.0e-7 # Ask Calvin why this is the value, and why we toss even though we have a kalman filter
+ACCEPTABLE_TAG_ERROR_LIMIT = 5.0e-3 # Ask Calvin why this is the value, and why we toss even though we have a kalman filter
 
 def main():
     # Initialize Network Table
@@ -63,10 +63,11 @@ def main():
             tags = at_detector.detect(grayscale,
                                       estimate_tag_pose=True,
                                       camera_params=cams[cam]["Parameters"],
-                                      tag_size=0.163525)
+                                      tag_size=TAG_SIZE_INCHES * INCHES_TO_METERS)
             
             for tag in tags:
                 # We do not like tags that have much error >:(
+                #print(tag.pose_err)
                 if tag.pose_err > ACCEPTABLE_TAG_ERROR_LIMIT:
                     continue
                 seen_tag = True
@@ -77,8 +78,9 @@ def main():
                 yOffset = offset[1][0][0]
                 tagID = tag.tag_id
                 
-                visionPositions.append(Position(xOffset, yOffset, tagID))
+                visionOffsets.append(Position(xOffset, yOffset, tagID))
         # Publish all positions and values to be interpreted on the RIO
+        #print(seen_tag, visionOffsets)
         positionPub.set(visionOffsets)
         latencyPub.set(time.process_time() - frame_start)
         tagSeenPub.set(seen_tag)

@@ -30,7 +30,7 @@ def calculate_transformation(CAMERA_X, CAMERA_Y, CAMERA_Z, CAMERA_YAW, CAMERA_PI
     # Translation of Camera Origin to Robot Origin
     camera_origin_to_robot_origin = np.array([
         [cos_yaw, -sin_yaw, 0, CAMERA_X],
-        [sin_yaw, cos_yaw, 0, -CAMERA_Y], # -1 due to terrible left handedness of coordinate system
+        [sin_yaw, cos_yaw, 0, CAMERA_Y],
         [0, 0, 1, CAMERA_Z],
         [0, 0, 0, 1]
     ], dtype="object")
