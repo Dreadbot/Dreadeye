@@ -2,9 +2,6 @@ import math
 import numpy as np
                            # METERS----------------------  RAD---------------------
 def calculate_transformation(CAMERA_X, CAMERA_Y, CAMERA_Z, CAMERA_YAW, CAMERA_PITCH):
-    sin_90 = math.sin(math.pi / 2)
-    cos_90 = math.cos(math.pi / 2)
-
     sin_pitch = math.sin(CAMERA_PITCH)
     cos_pitch = math.cos(CAMERA_PITCH)
     
@@ -21,8 +18,8 @@ def calculate_transformation(CAMERA_X, CAMERA_Y, CAMERA_Z, CAMERA_YAW, CAMERA_PI
 
     # FRC Fields use X as depth opposed to cameras
     camera_axes_to_robot_axes = np.array([
-        [cos_90, sin_90, 0, 0],
-        [-sin_90, cos_90, 0, 0],
+        [0, 1, 0, 0],
+        [-1, 0, 0, 0],
         [0, 0, 1, 0],
         [0, 0, 0, 1]
     ], dtype="object")
@@ -36,7 +33,6 @@ def calculate_transformation(CAMERA_X, CAMERA_Y, CAMERA_Z, CAMERA_YAW, CAMERA_PI
     ], dtype="object")
 
     # Camera Coordinates to World Coordinates
-    
     # Rotate Axes onto World Axes
     corrected_pitch = np.matmul(camera_axes_to_robot_axes, pitch_rotation)
     # Move origin
@@ -45,20 +41,15 @@ def calculate_transformation(CAMERA_X, CAMERA_Y, CAMERA_Z, CAMERA_YAW, CAMERA_PI
     return overall_transformation
 
 # AT detector results, matrices from init
-def calculate_tag_offset(tag_in_camera_frame, overall_transformation):
+def calculate_tag_offset(tag, overall_transformation):
+    t = tag.pose_t
+    R = tag.pose_R
     
-    tag_in_camera_frame = np.array([[tag_in_camera_frame[0]], [tag_in_camera_frame[1]], [tag_in_camera_frame[2]], [1]], dtype="object")
-
+    tag_in_camera_frame = np.array([[t[0]], [t[1]], [t[2]], [1]], dtype="object")
+    
     # Actual Coordinate Transform
     tag_in_robot_frame = np.matmul(overall_transformation, tag_in_camera_frame)
 
-    ## Robot Rotation
-    #tag_corrected = np.matmul(pitch_rotation, tag_in_camera_frame)
-    #
-    ## Rotate Axes onto World Axes
-    #applied_rotation = np.matmul(camera_axes_to_robot_axes, tag_corrected)
-    #
-    ## Bring out Rotation Values from Matrix
-    #robot_yaw_from_tag = math.acos(applied_rotation[0][0][2]) * np.sign(applied_rotation[1][0][2])
-    
+    yaw = math.asin(-R[2, 0])
+    print(yaw)
     return tag_in_robot_frame

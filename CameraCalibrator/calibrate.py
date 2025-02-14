@@ -21,7 +21,7 @@ arg_parser.add_argument("--no-ui", action='store_true', required=False, help="ru
 
 args = arg_parser.parse_args()
 
-dictionary = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_5X5_1000)
+dictionary = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_1000)
 
 board = cv2.aruco.CharucoBoard((args.width, args.height), args.square / 1000, args.marker / 1000, dictionary)
 
@@ -59,6 +59,8 @@ def save_model(all_charuco_corners, all_charuco_ids, all_counter, frame_shape):
         }
 
         f.write(json.dumps(camera_model, indent=4))
+    np.save("distortion_coefficients.npy", dist_coeffs)
+    np.save("camera_matrix.npy", camera_matrix)
 
 all_charuco_corners = []
 all_charuco_ids = []
@@ -68,13 +70,17 @@ captures = 0
 frame_shape = (0, 0)
 
 cap = cv2.VideoCapture(args.cam_id)
-
+#cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, 3)
+cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
+cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, 1)
+cap.set(cv2.CAP_PROP_EXPOSURE, 100)
+cap.set(cv2.CAP_PROP_BRIGHTNESS, 0)
 
 while True:
     ret, frame = cap.read()
     if not ret:
         break
-    resized_frame = cv2.resize(frame, (640*2, 480*2)) 
+    #resized_frame = cv2.resize(frame, (640*2, 480*2)) 
     frames += 1
     
     if (cv2.waitKey(1) == ord("q")) or captures == args.captures:
@@ -82,17 +88,17 @@ while True:
         print("Starting Calibration")
         save_model(all_charuco_corners, all_charuco_ids, all_counter, frame_shape)
     
-    frame_grey = cv2.cvtColor(resized_frame, cv2.COLOR_BGR2GRAY)
+    frame_grey = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     frame_shape = frame_grey.shape
     
     charuco_corners, charuco_ids, marker_corners, marker_ids = charuco_detector.detectBoard(frame_grey)
  
     if charuco_ids is not None and len(charuco_ids) >= 6:
-        cv2.aruco.drawDetectedMarkers(resized_frame, marker_corners, marker_ids)
-        cv2.aruco.drawDetectedCornersCharuco(resized_frame, charuco_corners, charuco_ids)
+        cv2.aruco.drawDetectedMarkers(frame, marker_corners, marker_ids)
+        cv2.aruco.drawDetectedCornersCharuco(frame, charuco_corners, charuco_ids)
 
         # Only use every 5 calculations, for speed
-        if frames % 5 == 0:
+        if frames % 50 == 0:
             captures += 1
             if args.no_ui:
                 print(captures)
@@ -101,4 +107,4 @@ while True:
             all_counter.append(len(charuco_ids))
          
     if not args.no_ui:
-        cv2.imshow("frame", resized_frame)
+        cv2.imshow("frame", frame)

@@ -6,7 +6,14 @@ def start_network_table():
     table = inst.getTable("azathoth")
     inst.startClient4("visionclient")
     inst.setServerTeam(3656)
-    positionPub = table.getStructArrayTopic("visionPos", Position).publish()
-    latencyPub = table.getDoubleTopic("visionLatency").publish()
+    positionPub = table.getStructArrayTopic("visionPos", Position).publish(
+	ntcore.PubSubOptions(sendAll=True, keepDuplicates=True)
+    )
+    latencyPub = table.getDoubleTopic("visionLatency").publish(
+	ntcore.PubSubOptions(sendAll=True, keepDuplicates=True)
+    )
+    yawPub = table.getDoubleTopic("yawPub").publish(
+        ntcore.PubSubOptions(sendAll=True, keepDuplicates=True)
+    )
     tagSeenPub = table.getBooleanTopic("tagSeen").publish()
-    return tagSeenPub, latencyPub, positionPub
+    return tagSeenPub, latencyPub, positionPub, yawPub, inst

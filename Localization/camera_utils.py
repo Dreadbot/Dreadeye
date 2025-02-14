@@ -1,27 +1,42 @@
 import cv2
 import yaml
-
-def set_camera_prop(cap, prop_id, value):
-    for _ in range (0, 10):
-        cap.set(prop_id, value)
-        if cap.get(prop_id) != value:
-            continue
-        else: 
-            return
-    raise ValueError()
+import numpy as np
+import math
+from calculate_pose import calculate_transformation
     
-def set_auto_exposure(cap, value):
-    try:
-        set_camera_prop(cap, cv2.CAP_PROP_AUTO_EXPOSURE, value)
-    except ValueError:
-        raise ValueError("Failed to set AUTO EXPOSURE to %d", value)
+class Camera:
+    def __init__(self, id, mtx, dst, x, y, z, yaw, pitch):
+        self.cap = cv2.VideoCapture(id)
+        w = int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+        h = int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        self.mtx = np.load(mtx + ".npy")
+        self.dst = np.load(dst + ".npy")
+        self.newmtx, self.roi = cv2.getOptimalNewCameraMatrix(self.mtx, self.dst, (w,h), 1, (w,h))
+        self.transform = calculate_transformation(x, y, z, math.radians(yaw), math.radians(90 + pitch))
+    
+    def read(self):
+        return self.cap.read()
+    
+    def get_parameters(self):
+        camera_params = [0] * 4
+        camera_params[0] = self.newmtx[0][0]
+        camera_params[1] = self.newmtx[1][1]
+        camera_params[2] = self.newmtx[0][2]
+        camera_params[3] = self.newmtx[1][2]
+        return camera_params
+    
+    def set_prop(self, prop, val):
+        for _ in range (0, 10):
+            self.cap.set(prop, val)
+            if self.cap.get(prop) != val:
+                continue
+            else: 
+                return
+        raise ValueError()
 
-def get_parameters(file):
-    camera_params = [0] * 4
-    with open(file, 'r') as f:
-        params = yaml.safe_load(f)
-        camera_params[0] = params["fx"]
-        camera_params[1] = params["fy"]
-        camera_params[2] = params["cx"]
-        camera_params[3] = params["cy"]
-    return camera_params
+    def set_auto_exposure(self, val):
+        try:
+            self.set_prop(cv2.CAP_PROP_AUTO_EXPOSURE, val)
+        except ValueError:
+            raise ValueError("Failed to set AUTO EXPOSURE to %d", val)
+
