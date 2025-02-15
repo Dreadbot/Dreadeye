@@ -71,7 +71,12 @@ def get_coordinate_transform():
 def get_global_position(tag):
     R = tag.pose_R
     t = tag.pose_t
-    print(R, t)
+    #print(-(R.T) @ t)
+    #print(R, "\n", t)
+    new_R = R.T
+    new_t = -new_R @ t
+
+    print(new_R, "\n", new_t)
     
     t = [t[0][0], t[1][0], t[2][0]]
     R = np.eye(3)
