@@ -57,11 +57,15 @@ def test_tag1_robot_in_front():
     btc_mock.stop()
 
 def test_tag1_robot_angled():
+    cos45 = math.cos(math.radians(-45))
+    sin45 = math.sin(math.radians(-45))
+    sqrt2 = math.sqrt(2)
+    
     cam_to_tag = np.array([
-        [-1, 0, 0, 0   ],
-        [0, 1, 0, -0.2],
-        [0, 0, -1, 2   ],
-        [0, 0, 0, 1   ]
+        [-cos45,  0, sin45,  0   ],
+        [0,       1, 0,      -0.2     ],
+        [-sin45,  0, -cos45, 2   ],
+        [0,       0, 0,      1       ]
     ], dtype='object')
 
     
