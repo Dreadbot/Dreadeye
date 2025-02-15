@@ -1,10 +1,11 @@
 import wpiutil
 from wpiutil import wpistruct
-
+import struct
 class Position:
-    def __init__(self, x: wpiutil.wpistruct.double, y: wpiutil.wpistruct.double, ID: wpiutil.wpistruct.int16):
+    def __init__(self, x: wpiutil.wpistruct.double, y: wpiutil.wpistruct.double, r: wpiutil.wpistruct.double, ID: wpiutil.wpistruct.int16):
         self.x = x
         self.y = y
+        self.r = struct.pack('d', r)
         self.ID = ID
 
     def pack(self):
@@ -15,6 +16,7 @@ class Position:
     def packInto(self, bb: bytearray):
         bb.extend(self.x.tobytes())
         bb.extend(self.y.tobytes())
+        bb.extend(self.r)
         bb.extend(self.ID.to_bytes(4, byteorder='little'))
 
     def unpack(bb: bytearray):
@@ -22,8 +24,8 @@ class Position:
 
     WPIStruct = wpiutil.wpistruct.StructDescriptor(
         "struct:position",
-        "double x;double y;int ID",
-        8 + 8 + 4,
+        "double x;double y;double r;int ID",
+        8 + 8 + 8 + 4,
         pack,
         packInto,
         unpack,

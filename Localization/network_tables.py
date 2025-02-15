@@ -12,8 +12,5 @@ def start_network_table():
     latencyPub = table.getDoubleTopic("visionLatency").publish(
 	ntcore.PubSubOptions(sendAll=True, keepDuplicates=True)
     )
-    yawPub = table.getDoubleTopic("yawPub").publish(
-        ntcore.PubSubOptions(sendAll=True, keepDuplicates=True)
-    )
     tagSeenPub = table.getBooleanTopic("tagSeen").publish()
-    return tagSeenPub, latencyPub, positionPub, yawPub, inst
+    return tagSeenPub, latencyPub, positionPub, inst

@@ -15,7 +15,9 @@ class Camera:
         self.transform = calculate_transformation(x, y, z, math.radians(yaw), math.radians(90 + pitch))
     
     def read(self):
-        return self.cap.read()
+        _, frame = self.cap.read()
+        grayscale = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        return grayscale
     
     def get_parameters(self):
         camera_params = [0] * 4
