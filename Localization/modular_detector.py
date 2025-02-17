@@ -11,11 +11,12 @@ from camera_utils import Camera
 from calculate_pose import calculate_tag_offset
 from calculate_pose import calculate_transformation
 from poseclass import Position
+from pose_calculator import get_pose_from_camera
 TAG_SIZE_INCHES = 6.25
 INCHES_TO_METERS = 0.0254                                                                                      # OFFSET FROM ROBOT--------------------------
 cams = [                                                                                                       # METERS-----------------------  RAD---------
           #id    matrix          distortion     X  Y  Z  yaw  pitch
-    Camera(0, "right_cam_mtx", "right_cam_dst", 0, 0, 0, 45, -20)
+    Camera(0, "right_cam_mtx", "right_cam_dst", 13.25 * INCHES_TO_METERS, -9 * INCHES_TO_METERS, 7.5 * INCHES_TO_METERS, 45, 20)
 ]
 
 ACCEPTABLE_TAG_ERROR_LIMIT = 5.0e-3 # Ask Calvin why this is the value, and why we toss even though we have a kalman filter
@@ -74,14 +75,19 @@ def main():
                     continue
                 seen_tag = True
                 
-                offset, yaw = calculate_tag_offset(tag, cam.transform)
+                # offset, yaw = calculate_tag_offset(tag, cam.transform)
                 
-                xOffset = offset[0][0][0]
-                yOffset = offset[1][0][0]
+                # xOffset = offset[0][0][0]
+                # yOffset = offset[1][0][0]
                 
-                tagID = tag.tag_id
-                
-                visionOffsets.append(Position(xOffset, yOffset, yaw, tagID))
+                # tagID = tag.tag_id
+                #print(tag.pose_t)
+                pose = get_pose_from_camera(tag, cam)
+                #yaw = math.atan2(pose_t[2][0], pose_t[2][1])
+                yaw = math.acos(-pose[2][2]) - (math.pi / 2)
+                #print(pose[:3, 3:])
+                print(tag.pose_t)
+                #visionOffsets.append(Position(xOffset, yOffset, yaw, tagID))
                 
             # Publish all positions and values to be interpreted on the RIO
         positionPub.set(visionOffsets)

@@ -2,8 +2,8 @@ import cv2
 import yaml
 import numpy as np
 import math
-from calculate_pose import calculate_transformation
-    
+from pose_calculator import get_bot_to_cam
+
 class Camera:
     def __init__(self, id, mtx, dst, x, y, z, yaw, pitch):
         self.cap = cv2.VideoCapture(id)
@@ -12,7 +12,7 @@ class Camera:
         self.mtx = np.load(mtx + ".npy")
         self.dst = np.load(dst + ".npy")
         self.newmtx, self.roi = cv2.getOptimalNewCameraMatrix(self.mtx, self.dst, (w,h), 1, (w,h))
-        self.transform = calculate_transformation(x, y, z, math.radians(yaw), math.radians(90 + pitch))
+        self.transform = get_bot_to_cam(x, y, z, math.radians(yaw), math.radians(pitch))
     
     def read(self):
         _, frame = self.cap.read()
