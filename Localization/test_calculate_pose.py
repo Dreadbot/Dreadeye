@@ -152,7 +152,7 @@ def test_tag0_robot_angled_to_bot():
     #btc_mock.start()
     
     #cam_mock.read.return_value = None, None
-    cam = Camera(0, 'right_cam_mtx', 'right_cam_dst', 13.25, -9, 7.5, -45, 0)
+    cam = Camera(0, 'right_cam_mtx', 'right_cam_dst', 13.25, -9, 7.5, -45, -20)
     cam.read = MagicMock(return_value=(None, None))
     tag = MagicMock()
     tag.pose_t = pose_t
@@ -169,7 +169,9 @@ def test_tag0_robot_angled_to_bot():
                 [0],
                 [1]]
     print("\n", cam.transform)
-    print("should be cam pos", "\n", cam.transform @ identity)
+    translation = (cam.transform @ identity)
+    print("should be cam pos", "\n", translation)
+    print(translation[0][0] * translation[0][0] + translation[1][0] * translation[1][0] + translation[2][0] * translation[2][0])
     robot_frame_camera = [[13.25],
                           [-9],
                           [7.5],

@@ -64,8 +64,8 @@ def get_bot_to_cam(x, y, z, yaw_rad, pitch_rad):
     
     yaw = np.array([
         [cos_yaw,    0,    sin_yaw],
-        [0,            1,    0         ],
-        [-sin_pitch,    0,    cos_yaw ]                      
+        [0,          1,    0      ],
+        [-sin_yaw, 0,    cos_yaw]                      
     ], dtype='object')
     
     pitch = np.array([

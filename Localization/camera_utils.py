@@ -7,6 +7,7 @@ from pose_calculator import get_bot_to_cam
 class Camera:
     def __init__(self, id, mtx, dst, x, y, z, yaw, pitch):
         self.cap = cv2.VideoCapture(id)
+        self.id = id
         w = int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH))
         h = int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
         self.mtx = np.load(mtx + ".npy")

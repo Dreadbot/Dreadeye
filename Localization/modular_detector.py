@@ -56,7 +56,7 @@ def main():
             grayscale = cam.read()
             
             # Use imshow to debug camera postions and IDs
-            cv2.imshow(str(cam), grayscale)
+            cv2.imshow(str(cam.id), grayscale)
 
             dst = cv2.undistort(grayscale, cam.mtx, cam.dst, None, cam.newmtx)
         
@@ -82,11 +82,11 @@ def main():
                 
                 # tagID = tag.tag_id
                 #print(tag.pose_t)
-                pose = get_pose_from_camera(tag, cam)
+                #pose = get_pose_from_camera(tag, cam)
                 #yaw = math.atan2(pose_t[2][0], pose_t[2][1])
-                yaw = math.acos(-pose[2][2]) - (math.pi / 2)
+                #yaw = math.acos(-pose[2][2]) - (math.pi / 2)
                 #print(pose[:3, 3:])
-                print(tag.pose_t)
+                print(tag.pose_t, "\n", tag.pose_R)
                 #visionOffsets.append(Position(xOffset, yOffset, yaw, tagID))
                 
             # Publish all positions and values to be interpreted on the RIO
