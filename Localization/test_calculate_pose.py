@@ -17,7 +17,7 @@ bot_to_cam = np.array([
 ], dtype='object')
 
 tag_to_world = np.array([
-    [0,  0, -1, 10 ],
+    [0,  0, -1, 13.89 ],
     [-1, 0,  0, 5  ],
     [0,  1,  0, 0.5],
     [0,  0,  0, 1  ]
@@ -36,8 +36,8 @@ def test_tag1_robot_in_front():
     ], dtype='object')
 
     
-    ttw_mock = patch('pose_calculator.get_tag_to_world_by_tag_id',
-                     return_value=tag_to_world)
+    #ttw_mock = patch('pose_calculator.get_tag_to_world_by_tag_id',
+    #                 return_value=tag_to_world)
     #ctt_mock = patch('pose_calculator.get_cam_to_tag',
     #                 return_value=cam_to_tag)
     btc_mock = patch('pose_calculator.get_bot_to_cam',
@@ -47,7 +47,7 @@ def test_tag1_robot_in_front():
     # ctt_mock.return_value = cam_to_tag, 0
     btc_mock.return_value = bot_to_cam
 
-    ttw_mock.start()
+    #ttw_mock.start()
     #ctt_mock.start()
     btc_mock.start()
     
@@ -57,10 +57,10 @@ def test_tag1_robot_in_front():
     tag = MagicMock()
     tag.pose_t = pose_t
     tag.pose_R = pose_R
-    tag.id = 0
+    tag.tag_id = 7
     print("\n", get_pose_from_camera(tag, cam))
     #temp_method()
-    ttw_mock.stop()
+    #ttw_mock.stop()
     #ctt_mock.stop()
     btc_mock.stop()
 
@@ -107,7 +107,7 @@ def test_tag0_robot_angled():
     tag = MagicMock()
     tag.pose_t = pose_t
     tag.pose_R = pose_R
-    tag.id = 0
+    tag.tag_id = 7
     print("\n", get_pose_from_camera(tag, cam))
     #temp_method()
     ttw_mock.stop()
@@ -136,18 +136,18 @@ def test_tag0_robot_angled_to_bot():
     # ], dtype='object')
 
     
-    ttw_mock = patch('pose_calculator.get_tag_to_world_by_tag_id',
-                     return_value=tag_to_world)
+    #ttw_mock = patch('pose_calculator.get_tag_to_world_by_tag_id',
+    #                 return_value=tag_to_world)
     #ctt_mock = patch('pose_calculator.get_cam_to_tag',
     #                 return_value=(tag_R, tag_t))
-    btc_mock = patch('pose_calculator.get_bot_to_cam',
-                     return_value=bot_to_cam)
+    #btc_mock = patch('pose_calculator.get_bot_to_cam',
+    #                 return_value=bot_to_cam)
 
     #ttw_mock.return_value = tag_to_world
     # ctt_mock.return_value = cam_to_tag, 0
-    btc_mock.return_value = bot_to_cam
+    #btc_mock.return_value = bot_to_cam
 
-    ttw_mock.start()
+    #ttw_mock.start()
     #ctt_mock.start()
     #btc_mock.start()
     
@@ -157,10 +157,10 @@ def test_tag0_robot_angled_to_bot():
     tag = MagicMock()
     tag.pose_t = pose_t
     tag.pose_R = pose_R
-    tag.id = 0
+    tag.tag_id = 7
     #print("\n", get_pose_from_camera(tag, cam))
     #temp_method()
-    ttw_mock.stop()
+    #ttw_mock.stop()
     #ctt_mock.stop()
     #btc_mock.stop()
 
@@ -178,9 +178,9 @@ def test_tag0_robot_angled_to_bot():
                           [1]]
     print("should be identity", "\n", cam.transform @ robot_frame_camera)
     point_out_of_bot = [[25],
-                          [0],
-                          [7.5],
-                          [1]]
+                        [0],
+                        [7.5],
+                        [1]]
     print(cam.transform @ point_out_of_bot)
 
     

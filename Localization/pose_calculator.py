@@ -1,5 +1,7 @@
 import numpy as np
 import math
+import json
+from scipy.spatial.transform import Rotation as R
 
 def get_bot_to_camera_axes():    
     # pitch = np.array([
@@ -24,9 +26,49 @@ def get_bot_to_camera_axes():
     #return yaw @ pitch
     return bot_to_cam
 
-def get_tag_to_world_by_tag_id(id):
-    # Parse YAML
-    pass
+def initialize_tag_vectors():
+    tag_poses = {}
+    with open('2025-reefscape.json', 'r') as f:
+        field_data = json.load(f)['tags']
+        for tag in field_data:
+            tag_poses[tag['ID']] = {'pose_t': tag['pose']['translation'], 'quaternion': tag['pose']['rotation']['quaternion']}
+    return tag_poses
+
+def get_tag_to_world_by_tag_id(tag_poses, id):
+    tag_pose = tag_poses[id]
+    unparsed_t = tag_pose['pose_t']
+    unparsed_Q = tag_pose['quaternion']
+
+    tag_t = [
+        [unparsed_t['x']],
+        [unparsed_t['y']],
+        [unparsed_t['z']]
+    ]
+
+    tag_Q = [
+        unparsed_Q['X'],
+        unparsed_Q['Y'],
+        unparsed_Q['Z'],
+        unparsed_Q['W']
+    ]
+    
+    tag_R = R.from_quat(tag_Q)
+
+    tag_axes_to_world_axes = np.array([
+        [0,  0,  1],
+        [1,  0,  0],
+        [0,  1,  0]
+    ], dtype='object')
+
+    tag_R_to_world_R = tag_R.as_matrix() @ tag_axes_to_world_axes
+
+    tag_to_world = np.eye(4)
+
+    tag_to_world[:3, :3] = tag_R_to_world_R
+    tag_to_world[:3, 3:] = tag_t
+
+    print(tag_to_world)
+    return tag_to_world
 
 def get_cam_to_tag(tag):
     R = tag.pose_R
@@ -38,10 +80,10 @@ def get_cam_to_tag(tag):
     new_pose[:3, 3:] = new_t
 
     rotation = np.array([
-        [-1, 0, 0, 0],
-        [0,  1, 0, 0],
-        [0,  0, -1, 0],
-        [0, 0, 0, 1]                      
+        [-1, 0,  0,  0],
+        [0,  1,  0,  0],
+        [0,  0,  -1, 0],
+        [0,  0,  0,  1]                      
     ], dtype='object')
 
     # yaw_90 = np.array([
@@ -54,6 +96,7 @@ def get_cam_to_tag(tag):
     rotated_pose = rotation @ new_pose
     
     return rotated_pose
+    #return new_pose
 
 def get_bot_to_cam(x, y, z, yaw_rad, pitch_rad):
     #pitch_rad += math.pi
@@ -93,8 +136,8 @@ def get_pose_from_camera(tag, cam):
     cam_to_tag = get_cam_to_tag(tag)
 
     bot_to_cam = cam.transform
-    
-    tag_to_world = get_tag_to_world_by_tag_id(tag.tag_id)
+    tag_poses = initialize_tag_vectors()
+    tag_to_world = get_tag_to_world_by_tag_id(tag_poses, tag.tag_id)
 
     return tag_to_world @ (cam_to_tag @ bot_to_cam)
     #return cam_to_tag @ bot_to_cam
