@@ -67,7 +67,6 @@ def get_tag_to_world_by_tag_id(tag_poses, id):
     tag_to_world[:3, :3] = tag_R_to_world_R
     tag_to_world[:3, 3:] = tag_t
 
-    print(tag_to_world)
     return tag_to_world
 
 def get_cam_to_tag(tag):
@@ -132,7 +131,7 @@ def get_bot_to_cam(x, y, z, yaw_rad, pitch_rad):
     
     return bot_to_cam
 
-def get_pose_from_camera(tag, cam):
+def get_pose_from_tag(cam, tag):
     cam_to_tag = get_cam_to_tag(tag)
 
     bot_to_cam = cam.transform
@@ -141,3 +140,33 @@ def get_pose_from_camera(tag, cam):
 
     return tag_to_world @ (cam_to_tag @ bot_to_cam)
     #return cam_to_tag @ bot_to_cam
+
+import cv2
+from poseclass import Position
+
+INCHES_TO_METERS = 0.0254
+ACCEPTABLE_TAG_ERROR_LIMIT = 5.0e-3
+
+def get_poses_from_cam(cam, detector):
+    grayscale = cam.read()
+
+    cv2.imshow(str(cam.id), grayscale)
+    
+    tags = detector.detect(grayscale,
+                           estimate_tag_pose=True,
+                           camera_params=cam.get_parameters(),
+                           tag_size=6.5 * INCHES_TO_METERS)
+
+    visionPositions = []
+    for tag in tags:
+        if tag.pose_err > ACCEPTABLE_TAG_ERROR_LIMIT:
+            continue
+        if tag.tag_id > 22:
+            continue
+        pose = get_pose_from_tag(cam, tag)
+        x, y, z = pose[:3, 3]
+        yaw = math.atan2(pose[1][0],pose[0][0])
+        #print(x, y, yaw * 180 / math.pi)
+        visionPositions.append(Position(x, y, yaw))
+    
+    return visionPositions

@@ -1,7 +1,7 @@
 from pose_calculator import get_tag_to_world_by_tag_id
 from pose_calculator import get_bot_to_cam
 from pose_calculator import get_cam_to_tag
-from pose_calculator import get_pose_from_camera
+from pose_calculator import get_pose_from_tag
 #from pose_calculator import temp_method
 from unittest.mock import patch, MagicMock
 import numpy as np
@@ -17,8 +17,8 @@ bot_to_cam = np.array([
 ], dtype='object')
 
 tag_to_world = np.array([
-    [0,  0, -1, 13.89 ],
-    [-1, 0,  0, 5  ],
+    [0,  0, 1, 13.89 ],
+    [1, 0,  0, 5  ],
     [0,  1,  0, 0.5],
     [0,  0,  0, 1  ]
 ], dtype='object')
@@ -36,18 +36,18 @@ def test_tag1_robot_in_front():
     ], dtype='object')
 
     
-    #ttw_mock = patch('pose_calculator.get_tag_to_world_by_tag_id',
-    #                 return_value=tag_to_world)
+    ttw_mock = patch('pose_calculator.get_tag_to_world_by_tag_id',
+                     return_value=tag_to_world)
     #ctt_mock = patch('pose_calculator.get_cam_to_tag',
     #                 return_value=cam_to_tag)
     btc_mock = patch('pose_calculator.get_bot_to_cam',
                      return_value=bot_to_cam)
 
-    #ttw_mock.return_value = tag_to_world
+    ttw_mock.return_value = tag_to_world
     # ctt_mock.return_value = cam_to_tag, 0
     btc_mock.return_value = bot_to_cam
 
-    #ttw_mock.start()
+    ttw_mock.start()
     #ctt_mock.start()
     btc_mock.start()
     
@@ -58,9 +58,14 @@ def test_tag1_robot_in_front():
     tag.pose_t = pose_t
     tag.pose_R = pose_R
     tag.tag_id = 7
-    print("\n", get_pose_from_camera(tag, cam))
+    pose = get_pose_from_tag(cam, tag)
+    #yaw = -math.atan2(pose[0][2], pose[1][2])
+    yaw = math.atan2(pose[1][0],pose[0][0])
+    #yaw = math.acos(pose[2][2])
+    #yaw = math.asin(pose[2, 0])
+    print("\n", pose, yaw)
     #temp_method()
-    #ttw_mock.stop()
+    ttw_mock.stop()
     #ctt_mock.stop()
     btc_mock.stop()
 
@@ -108,7 +113,7 @@ def test_tag0_robot_angled():
     tag.pose_t = pose_t
     tag.pose_R = pose_R
     tag.tag_id = 7
-    print("\n", get_pose_from_camera(tag, cam))
+    print("\n", get_pose_from_tag(cam, tag))
     #temp_method()
     ttw_mock.stop()
     #ctt_mock.stop()
@@ -142,7 +147,6 @@ def test_tag0_robot_angled_to_bot():
     #                 return_value=(tag_R, tag_t))
     #btc_mock = patch('pose_calculator.get_bot_to_cam',
     #                 return_value=bot_to_cam)
-
     #ttw_mock.return_value = tag_to_world
     # ctt_mock.return_value = cam_to_tag, 0
     #btc_mock.return_value = bot_to_cam

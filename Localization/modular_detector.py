@@ -8,18 +8,16 @@ import wpiutil
 from wpiutil import wpistruct
 from network_tables import start_network_table
 from camera_utils import Camera
-from calculate_pose import calculate_tag_offset
-from calculate_pose import calculate_transformation
+#from calculate_pose import calculate_tag_offset
+#from calculate_pose import calculate_transformation
 from poseclass import Position
-from pose_calculator import get_pose_from_camera
-TAG_SIZE_INCHES = 6.25
-INCHES_TO_METERS = 0.0254                                                                                      # OFFSET FROM ROBOT--------------------------
+from pose_calculator import get_poses_from_cam
+
+INCHES_TO_METERS = 0.0254                                                                                     # OFFSET FROM ROBOT--------------------------
 cams = [                                                                                                       # METERS-----------------------  RAD---------
           #id    matrix          distortion     X  Y  Z  yaw  pitch
-    Camera(0, "right_cam_mtx", "right_cam_dst", 13.25 * INCHES_TO_METERS, -9 * INCHES_TO_METERS, 7.5 * INCHES_TO_METERS, 45, 20)
+    Camera(0, "right_cam_mtx", "right_cam_dst", 0, 0, 0, 0, 0)#13.25 * INCHES_TO_METERS, -9 * INCHES_TO_METERS, 7.5 * INCHES_TO_METERS, 45, 20)
 ]
-
-ACCEPTABLE_TAG_ERROR_LIMIT = 5.0e-3 # Ask Calvin why this is the value, and why we toss even though we have a kalman filter
 
 def main():
     # Initialize Network Table
@@ -29,7 +27,7 @@ def main():
     at_detector = Detector(searchpath=['apriltags'],
                            nthreads=1,        # Ask Calvin why we use 2 threads
                            quad_decimate=1.0) # use high res 1.0, low res 2.0
-    
+
     for cam in cams:
         # We get 100fps on MJPG compared to YUY2
         cam.set_prop(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
@@ -47,50 +45,49 @@ def main():
     
     while True:
         # Initialize NT values
-        visionOffsets = []
+        visionPositions = []
         seen_tag = False
         frame_start = time.process_time()
         if cv2.waitKey(1) == ord('q') & 0xff:
             break
         for cam in cams:
-            grayscale = cam.read()
-            
-            # Use imshow to debug camera postions and IDs
-            cv2.imshow(str(cam.id), grayscale)
+            visionPoses = get_poses_from_cam(cam, at_detector)
 
-            dst = cv2.undistort(grayscale, cam.mtx, cam.dst, None, cam.newmtx)
+            for pose in visionPoses:
+                visionPositions.append(pose)
+            # grayscale = cam.read()
+            
+            # # Use imshow to debug camera postions and IDs
+            # cv2.imshow(str(cam.id), grayscale)
+
+            # dst = cv2.undistort(grayscale, cam.mtx, cam.dst, None, cam.newmtx)
         
-            x, y, w, h = cam.roi
-            dst = dst[y:y+h, x:x+w]
+            # x, y, w, h = cam.roi
+            # dst = dst[y:y+h, x:x+w]
             
-            tags = at_detector.detect(grayscale,
-                                      estimate_tag_pose=True,
-                                      camera_params=cam.get_parameters(),
-                                      tag_size=TAG_SIZE_INCHES * INCHES_TO_METERS)
+            # tags = at_detector.detect(grayscale,
+            #                           estimate_tag_pose=True,
+            #                           camera_params=cam.get_parameters(),
+            #                           tag_size=TAG_SIZE_INCHES * INCHES_TO_METERS)
             
-            for tag in tags:
-                # We do not like tags that have much error >:(
-                #print(tag.pose_err)
-                if tag.pose_err > ACCEPTABLE_TAG_ERROR_LIMIT:
-                    continue
-                seen_tag = True
+            # for tag in tags:
+            #     # We do not like tags that have much error >:(
+            #     #print(tag.pose_err)
+            #     if tag.pose_err > ACCEPTABLE_TAG_ERROR_LIMIT:
+            #         continue
+            #     seen_tag = True
                 
-                # offset, yaw = calculate_tag_offset(tag, cam.transform)
+            #     # offset, yaw = calculate_tag_offset(tag, cam.transform)
                 
-                # xOffset = offset[0][0][0]
-                # yOffset = offset[1][0][0]
+            #     # xOffset = offset[0][0][0]
+            #     # yOffset = offset[1][0][0]
                 
-                # tagID = tag.tag_id
-                #print(tag.pose_t)
-                #pose = get_pose_from_camera(tag, cam)
-                #yaw = math.atan2(pose_t[2][0], pose_t[2][1])
-                #yaw = math.acos(-pose[2][2]) - (math.pi / 2)
-                #print(pose[:3, 3:])
-                print(tag.pose_t, "\n", tag.pose_R)
-                #visionOffsets.append(Position(xOffset, yOffset, yaw, tagID))
+            #     #print(pose[:3, 3:])
+            #     print(tag.pose_t, "\n", tag.pose_R)
+            #     #visionOffsets.append(Position(xOffset, yOffset, yaw, tagID))
                 
             # Publish all positions and values to be interpreted on the RIO
-        positionPub.set(visionOffsets)
+        positionPub.set(visionPositions)
         latencyPub.set(time.process_time() - frame_start)
         tagSeenPub.set(seen_tag)
         #inst.flush()
