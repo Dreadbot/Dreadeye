@@ -16,7 +16,8 @@ from pose_calculator import get_poses_from_cam
 INCHES_TO_METERS = 0.0254                                                                                     # OFFSET FROM ROBOT--------------------------
 cams = [                                                                                                       # METERS-----------------------  RAD---------
           #id    matrix          distortion     X  Y  Z  yaw  pitch
-    Camera(0, "right_cam_mtx", "right_cam_dst", -0.34, -0.25, -0.19, 45, -20) #-0.25, 0.19, 0.33, -45, -20) #0.34, -0.25, 0.19, -44.5, -20)
+    Camera(0, "right_cam_mtx", "right_cam_dst", -0.34, -0.25, -0.19, 45, -20), #-0.25, 0.19, 0.33, -45, -20) #0.34, -0.25, 0.19, -44.5, -20)
+    Camera(2, "right_cam_mtx", "right_cam_dst", -0.34, 0.25, 0.19, -45, -20) # UNCALIBRATED
 ]
 
 def main():
