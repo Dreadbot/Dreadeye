@@ -16,7 +16,7 @@ from pose_calculator import get_poses_from_cam
 INCHES_TO_METERS = 0.0254                                                                                     # OFFSET FROM ROBOT--------------------------
 cams = [                                                                                                       # METERS-----------------------  RAD---------
           #id    matrix          distortion     X  Y  Z  yaw  pitch
-    Camera(0, "right_cam_mtx", "right_cam_dst", 0, 0, 0, 0, 0)#13.25 * INCHES_TO_METERS, -9 * INCHES_TO_METERS, 7.5 * INCHES_TO_METERS, 45, 20)
+    Camera(0, "right_cam_mtx", "right_cam_dst", -0.34, -0.25, -0.19, 45, -20) #-0.25, 0.19, 0.33, -45, -20) #0.34, -0.25, 0.19, -44.5, -20)
 ]
 
 def main():
@@ -40,7 +40,7 @@ def main():
             cam.set_auto_exposure(0.25)
         
         # Set Exposure and Brightness to reasonable values. Tweak if necessary.
-        cam.set_prop(cv2.CAP_PROP_EXPOSURE, 500)
+        cam.set_prop(cv2.CAP_PROP_EXPOSURE, 50)
         cam.set_prop(cv2.CAP_PROP_BRIGHTNESS, 0)
     
     while True:
@@ -48,8 +48,8 @@ def main():
         visionPositions = []
         seen_tag = False
         frame_start = time.process_time()
-        if cv2.waitKey(1) == ord('q') & 0xff:
-            break
+        #if cv2.waitKey(1) == ord('q') & 0xff:
+        #    break
         for cam in cams:
             visionPoses = get_poses_from_cam(cam, at_detector)
 

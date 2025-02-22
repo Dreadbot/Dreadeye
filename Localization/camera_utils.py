@@ -18,6 +18,7 @@ class Camera:
     def read(self):
         _, frame = self.cap.read()
         grayscale = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        dst = cv2.undistort(grayscale, self.mtx, self.dst, None, self.newmtx)
         return grayscale
     
     def get_parameters(self):
