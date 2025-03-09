@@ -28,7 +28,7 @@ def get_bot_to_camera_axes():
 
 def initialize_tag_vectors():
     tag_poses = {}
-    with open('2025-reefscape.json', 'r') as f:
+    with open('2025-reefscape-welded.json', 'r') as f:
         field_data = json.load(f)['tags']
         for tag in field_data:
             tag_poses[tag['ID']] = {'pose_t': tag['pose']['translation'], 'quaternion': tag['pose']['rotation']['quaternion']}
@@ -138,7 +138,7 @@ def get_bot_to_cam(x, y, z, yaw_rad, pitch_rad):
     bot_to_cam = np.eye(4)
     bot_to_cam[:3, :3] = new_R
     bot_to_cam[:3, 3:] = new_t
-    print("BOT_TO_CAM: ", "\n", bot_to_cam)
+    #print("BOT_TO_CAM: ", "\n", bot_to_cam)
     return bot_to_cam
 
 def get_pose_from_tag(cam, tag):
@@ -147,7 +147,7 @@ def get_pose_from_tag(cam, tag):
     bot_to_cam = cam.transform
     tag_poses = initialize_tag_vectors()
     tag_to_world = get_tag_to_world_by_tag_id(tag_poses, tag.tag_id)
-    print(cam_to_tag)
+    #print(cam_to_tag)
     return tag_to_world @ (cam_to_tag @ bot_to_cam)
     #return tag_to_world @ cam_to_tag
 
@@ -158,6 +158,9 @@ INCHES_TO_METERS = 0.0254
 ACCEPTABLE_TAG_ERROR_LIMIT = 5.0e-6
 
 def get_poses_from_cam(cam, detector):
+    if cam.frame is None:
+        return []
+    
     grayscale = cam.read()
 
     # cv2.imshow(str(cam.id), grayscale)
@@ -170,7 +173,7 @@ def get_poses_from_cam(cam, detector):
     visionPositions = []
     for tag in tags:
         #print(tag.pose_R)
-        if tag.pose_err > ACCEPTABLE_TAG_ERROR_LIMIT:
+        if tag.pose_err > ACCEPTABLE_TAG_ERROR_LIMIT or tag.hamming > 1:
             continue
         if tag.tag_id > 22:
             continue
@@ -178,7 +181,7 @@ def get_poses_from_cam(cam, detector):
         x, y, z = pose[:3, 3]
         #print(pose[:3, :3])
         yaw = math.atan2(pose[1][0],pose[0][0])
-        print(x, y, yaw * 180 / math.pi)
-        visionPositions.append(Position(x, y, yaw))
+        #print(x, y, yaw * 180 / math.pi)
+        visionPositions.append(Position(x, y, yaw, tag.tag_id))
     
     return visionPositions

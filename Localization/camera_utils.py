@@ -2,24 +2,33 @@ import cv2
 import yaml
 import numpy as np
 import math
+import threading
 from pose_calculator import get_bot_to_cam
 
-class Camera:
+class Camera(threading.Thread):
     def __init__(self, id, mtx, dst, x, y, z, yaw, pitch):
+        threading.Thread.__init__(self)
         self.cap = cv2.VideoCapture(id)
         self.id = id
         w = int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH))
         h = int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
         self.mtx = np.load(mtx + ".npy")
         self.dst = np.load(dst + ".npy")
+        self.frame = None
         self.newmtx, self.roi = cv2.getOptimalNewCameraMatrix(self.mtx, self.dst, (w,h), 1, (w,h))
         self.transform = get_bot_to_cam(x, y, z, math.radians(yaw), math.radians(pitch))
-    
+        
     def read(self):
-        _, frame = self.cap.read()
-        grayscale = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        dst = cv2.undistort(grayscale, self.mtx, self.dst, None, self.newmtx)
-        return grayscale
+        #print(self.id)
+        return self.frame
+    
+    def run(self):
+        print("Started Thread")
+        while True:
+            _, frame = self.cap.read()
+            grayscale = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            dst = cv2.undistort(grayscale, self.mtx, self.dst, None, self.newmtx)
+            self.frame = dst
     
     def get_parameters(self):
         camera_params = [0] * 4

@@ -21,7 +21,7 @@ arg_parser.add_argument("--no-ui", action='store_true', required=False, help="ru
 
 args = arg_parser.parse_args()
 
-dictionary = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_1000)
+dictionary = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_5X5_1000)
 
 board = cv2.aruco.CharucoBoard((args.width, args.height), args.square / 1000, args.marker / 1000, dictionary)
 
@@ -73,7 +73,7 @@ cap = cv2.VideoCapture(args.cam_id)
 #cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, 3)
 cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
 cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, 1)
-cap.set(cv2.CAP_PROP_EXPOSURE, 100)
+cap.set(cv2.CAP_PROP_EXPOSURE, 20)
 cap.set(cv2.CAP_PROP_BRIGHTNESS, 0)
 
 while True:
