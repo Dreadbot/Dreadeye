@@ -17,19 +17,19 @@ from pose_calculator import get_poses_from_cam
 INCHES_TO_METERS = 0.0254                                                                                     # OFFSET FROM ROBOT--------------------------
 cams = [                                                                                                       # METERS-----------------------  RAD---------
           #id    matrix          distortion     X  Y  Z  yaw  pitch
-    Camera(0, "cam0_mtx", "cam0_dst", -0.332, -0.219, -0.192, 45, -20),
-    Camera(4, "cam1_mtx", "cam1_dst", -0.332, 0.219, -0.192, -45, -20),
-    #Camera(2, "cam2_mtx", "cam2_dst", 0.11, 0.01, -0.336, 180, 0)
+    Camera(0, 0, -0.332, -0.219, -0.192, 45, -20),
+    Camera(4, 1, -0.332, 0.219, -0.192, -45, -20),
+    #Camera(2, 2, 0.11, 0.01, -0.336, 180, 0)
 ]
 
 def main():
     # Initialize Network Table
-    tagSeenPub, latencyPub, positionPub, inst = start_network_table()
+    # tagSeenPub, latencyPub, positionPub, inst = start_network_table()
     
-    # Initialize Detector. https://github.com/duckietown/lib-dt-apriltags
-    at_detector = Detector(searchpath=['apriltags'],
-                           nthreads=1,        # Ask Calvin why we use 2 threads
-                           quad_decimate=1.0) # use high res 1.0, low res 2.0
+    # # Initialize Detector. https://github.com/duckietown/lib-dt-apriltags
+    # at_detector = Detector(searchpath=['apriltags'],
+    #                        nthreads=1,        # Ask Calvin why we use 2 threads
+    #                        quad_decimate=1.0) # use high res 1.0, low res 2.0
 
     for cam in cams:
         # We get 100fps on MJPG compared to YUY2
@@ -47,32 +47,28 @@ def main():
         cam.set_prop(cv2.CAP_PROP_BRIGHTNESS, 0)
         cam.start()
 
-    with open("./Logs/" + str(datetime.datetime.now()) + ".csv", "a") as f:
-        while True:
-            # Initialize NT values
-            seen_tag = False
-            #if cv2.waitKey(1) == ord('q') & 0xff:
-            #    break
-            for cam in cams:
-                #print(frame_start)
-                if cam.frame is None:
-                    continue
-                #cv2.imshow(str(cam.id), cam.frame)
-                #frame_start = time.process_time()
-                frame_start = cam.get_timestamp()
+    # with open("./Logs/" + str(datetime.datetime.now()) + ".csv", "a") as f:
+    #     while True:
+    #         # Initialize NT values
+    #         seen_tag = False
+    #         #if cv2.waitKey(1) == ord('q') & 0xff:
+    #         #    break
+    #         for cam in cams:
+    #             #cv2.imshow(str(cam.id), cam.frame)
+    #             frame_start = cam.get_timestamp()
                 
-                visionPoses = get_poses_from_cam(cam, at_detector)
+    #             visionPoses = get_poses_from_cam(cam, at_detector)
 
-                if len(visionPoses) != 0:
-                    print(frame_start, cam.id)
-                    seen_tag = True
-                #print(visionPoses) 
-                # Publish all positions and values to be interpreted on the RIO
-                positionPub.set(visionPoses)
-                latencyPub.set(time.process_time() - frame_start)
-                #for pose in visionPoses:
-                #    f.write(f"{frame_start},{cam.id},{pose.x},{pose.y},{pose.r},{pose.ID}\n")
-            tagSeenPub.set(seen_tag)
-        #inst.flush()
+    #             if len(visionPoses) != 0:
+    #                 #print(frame_start, cam.id)
+    #                 seen_tag = True
+    #             #print(visionPoses) 
+    #             # Publish all positions and values to be interpreted on the RIO
+    #             positionPub.set(visionPoses)
+    #             latencyPub.set(time.process_time() - frame_start)
+    #             #for pose in visionPoses:
+    #             #    f.write(f"{frame_start},{cam.id},{pose.x},{pose.y},{pose.r},{pose.ID}\n")
+    #         tagSeenPub.set(seen_tag)
+    #     #inst.flush()
 if __name__ == "__main__":
     main()
