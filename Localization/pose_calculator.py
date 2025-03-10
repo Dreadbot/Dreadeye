@@ -175,7 +175,7 @@ def get_poses_from_cam(cam, detector):
         #print(tag.pose_R)
         if tag.pose_err > ACCEPTABLE_TAG_ERROR_LIMIT or tag.hamming > 1:
             continue
-        if tag.tag_id > 22:
+        if tag.tag_id > 22 or tag.tag_id <= 0:
             continue
         pose = get_pose_from_tag(cam, tag)
         x, y, z = pose[:3, 3]

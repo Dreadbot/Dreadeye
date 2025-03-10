@@ -17,9 +17,9 @@ from pose_calculator import get_poses_from_cam
 INCHES_TO_METERS = 0.0254                                                                                     # OFFSET FROM ROBOT--------------------------
 cams = [                                                                                                       # METERS-----------------------  RAD---------
           #id    matrix          distortion     X  Y  Z  yaw  pitch
-    Camera(0, "cam0_mtx", "cam0_dst", -0.332, -0.25, -0.192, 45, -20),
-    #Camera(4, "cam1_mtx", "cam1_dst", -0.332, 0.25, -0.192, -45, -20),
-    Camera(2, "cam2_mtx", "cam2_dst", 0.11, 0.01, -0.336, 180, 0)
+    Camera(0, "cam0_mtx", "cam0_dst", -0.332, -0.219, -0.192, 45, -20),
+    Camera(4, "cam1_mtx", "cam1_dst", -0.332, 0.219, -0.192, -45, -20),
+    #Camera(2, "cam2_mtx", "cam2_dst", 0.11, 0.01, -0.336, 180, 0)
 ]
 
 def main():
@@ -43,7 +43,7 @@ def main():
             cam.set_auto_exposure(0.25)
         
         # Set Exposure and Brightness to reasonable values. Tweak if necessary.
-        cam.set_prop(cv2.CAP_PROP_EXPOSURE, 20)
+        cam.set_prop(cv2.CAP_PROP_EXPOSURE, 500)
         cam.set_prop(cv2.CAP_PROP_BRIGHTNESS, 0)
         cam.start()
 
@@ -51,16 +51,16 @@ def main():
         while True:
             # Initialize NT values
             seen_tag = False
-            frame_start = time.process_time()
-            if cv2.waitKey(1) == ord('q') & 0xff:
-                break
+            #if cv2.waitKey(1) == ord('q') & 0xff:
+            #    break
             for cam in cams:
                 #print(frame_start)
                 if cam.frame is None:
                     continue
-                cv2.imshow(str(cam.id), cam.read())
-                frame_start = time.process_time()
-            
+                #cv2.imshow(str(cam.id), cam.frame)
+                #frame_start = time.process_time()
+                frame_start = cam.get_timestamp()
+                
                 visionPoses = get_poses_from_cam(cam, at_detector)
 
                 if len(visionPoses) != 0:

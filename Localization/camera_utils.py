@@ -3,6 +3,7 @@ import yaml
 import numpy as np
 import math
 import threading
+import time
 from pose_calculator import get_bot_to_cam
 
 class Camera(threading.Thread):
@@ -19,16 +20,19 @@ class Camera(threading.Thread):
         self.transform = get_bot_to_cam(x, y, z, math.radians(yaw), math.radians(pitch))
         
     def read(self):
-        #print(self.id)
-        return self.frame
+        frame = self.frame
+        self.frame = None
+        return frame
     
     def run(self):
-        print("Started Thread")
+        x, y, w, h = self.roi
         while True:
             _, frame = self.cap.read()
+            #print("update")
             grayscale = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-            dst = cv2.undistort(grayscale, self.mtx, self.dst, None, self.newmtx)
+            dst = cv2.undistort(grayscale, self.mtx, self.dst, None, self.newmtx)[y:y+h, x:x+w]
             self.frame = dst
+            self.timestamp = time.process_time()
     
     def get_parameters(self):
         camera_params = [0] * 4
@@ -37,13 +41,16 @@ class Camera(threading.Thread):
         camera_params[2] = self.newmtx[0][2]
         camera_params[3] = self.newmtx[1][2]
         return camera_params
-    
+
+    def get_timestamp(self):
+        return self.timestamp
+        
     def set_prop(self, prop, val):
         for _ in range (0, 10):
             self.cap.set(prop, val)
             if self.cap.get(prop) != val:
                 continue
-            else: 
+            else:
                 return
         raise ValueError()
 
