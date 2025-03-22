@@ -28,7 +28,7 @@ def get_bot_to_camera_axes():
 
 def initialize_tag_vectors():
     tag_poses = {}
-    with open('2025-reefscape-welded.json', 'r') as f:
+    with open('Fields/2025-reefscape-welded.json', 'r') as f:
         field_data = json.load(f)['tags']
         for tag in field_data:
             tag_poses[tag['ID']] = {'pose_t': tag['pose']['translation'], 'quaternion': tag['pose']['rotation']['quaternion']}
@@ -152,7 +152,7 @@ def get_pose_from_tag(cam, tag):
     #return tag_to_world @ cam_to_tag
 
 import cv2
-from poseclass import Position
+from pose_class import Position
 
 INCHES_TO_METERS = 0.0254
 ACCEPTABLE_TAG_ERROR_LIMIT = 5.0e-6

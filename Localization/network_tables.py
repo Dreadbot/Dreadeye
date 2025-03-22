@@ -1,5 +1,5 @@
 import ntcore
-from poseclass import Position
+from pose_class import Position
 
 def start_network_table(table_name):
     inst = ntcore.NetworkTableInstance.getDefault()

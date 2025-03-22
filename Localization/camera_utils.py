@@ -6,7 +6,7 @@ import threading
 import time
 from dt_apriltags import Detector
 from network_tables import start_network_table
-from poseclass import Position
+from pose_class import Position
 from pose_calculator import get_bot_to_cam, get_poses_from_cam
 
 class Camera(threading.Thread):
