@@ -8,9 +8,10 @@ from dt_apriltags import Detector
 from network_tables import start_network_table
 from pose_class import Position
 from pose_calculator import get_bot_to_cam, get_poses_from_cam
+from mjpeg_streamer import MjpegServer, Stream
 
 class Camera(threading.Thread):
-    def __init__(self, id, cam_num, x, y, z, yaw, pitch):
+    def __init__(self, id, cam_num, x, y, z, yaw, pitch, server):
         threading.Thread.__init__(self)
         self.cap = cv2.VideoCapture(id)
         self.id = id
@@ -23,8 +24,10 @@ class Camera(threading.Thread):
         self.transform = get_bot_to_cam(x, y, z, math.radians(yaw), math.radians(pitch))
         self.tagSeenPub, self.latencyPub, self.positionPub, self.inst = start_network_table("Cam" + str(id))
         self.detector = Detector(searchpath=['apriltags'],
-                                 nthreads=1,
+                                 nthreads=6,
                                  quad_decimate=1.0)
+        self.stream = Stream("cam" + str(id), size=(w // 4, h // 4))
+        server.add_stream(self.stream)
         self.tagSeen = False
         
     def read(self):
@@ -35,13 +38,17 @@ class Camera(threading.Thread):
     def run(self):
         x, y, w, h = self.roi
         while True:
-            _, frame = self.cap.read()
-            self.timestamp = time.process_time()
+            ret, frame = self.cap.read()
+            if not ret:
+                print("READ FAILED")
+                continue
+            self.stream.set_frame(frame)
+            self.timestamp = time.perf_counter()
             
             grayscale = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-            dst = cv2.undistort(grayscale, self.mtx, self.dst, None, self.newmtx)[y:y+h, x:x+w]
+            undistorted = cv2.undistort(grayscale, self.mtx, self.dst, None, self.newmtx)[y:y+h, x:x+w]
 
-            self.frame = dst
+            self.frame = undistorted
 
             self.localize()
     
@@ -78,5 +85,5 @@ class Camera(threading.Thread):
             self.tagSeen = True
 
         self.positionPub.set(visionPoses)
-        self.latencyPub.set(time.process_time() - self.timestamp)
+        self.latencyPub.set(time.perf_counter() - self.timestamp)
         self.tagSeenPub.set(self.tagSeen)
