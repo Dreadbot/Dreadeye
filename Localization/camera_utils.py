@@ -26,7 +26,9 @@ class Camera(threading.Thread):
         self.detector = Detector(searchpath=['apriltags'],
                                  nthreads=6,
                                  quad_decimate=1.0)
-        self.stream = Stream("cam" + str(id), size=(w // 4, h // 4))
+        self.stream_width = w // 4
+        self.stream_height = h // 4
+        self.stream = Stream("cam" + str(id), size=(self.stream_width, self.stream_height))
         server.add_stream(self.stream)
         self.tagSeen = False
         
@@ -42,7 +44,7 @@ class Camera(threading.Thread):
             if not ret:
                 print("READ FAILED")
                 continue
-            self.stream.set_frame(frame)
+            self.stream.set_frame(cv2.resize(frame, (self.stream_width, self.stream_height)))
             self.timestamp = time.perf_counter()
             
             grayscale = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
