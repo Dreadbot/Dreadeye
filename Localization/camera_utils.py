@@ -14,6 +14,8 @@ class Camera(threading.Thread):
     def __init__(self, id, cam_num, x, y, z, yaw, pitch, server):
         threading.Thread.__init__(self)
         self.cap = cv2.VideoCapture(id)
+        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 800)
         self.id = id
         w = int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH))
         h = int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
@@ -42,17 +44,16 @@ class Camera(threading.Thread):
         while True:
             ret, frame = self.cap.read()
             if not ret:
-                print("READ FAILED")
+                #print("READ FAILED")
                 continue
-            self.stream.set_frame(cv2.resize(frame, (self.stream_width, self.stream_height)))
             self.timestamp = time.perf_counter()
             
             grayscale = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
             undistorted = cv2.undistort(grayscale, self.mtx, self.dst, None, self.newmtx)[y:y+h, x:x+w]
 
             self.frame = undistorted
-
             self.localize()
+            self.stream.set_frame(cv2.resize(undistorted, (self.stream_width, self.stream_height)))
     
     def get_parameters(self):
         camera_params = [0] * 4
